@@ -107,3 +107,48 @@ while True:
         elif response.status_code == 200:
             product = response.json()
             print(f"{product['title']} - ${product['price']}")
+
+
+####Task 4 — Logging to file
+
+from datetime import datetime
+import requests
+
+## Function to log errors
+def log_error(function_name, error_type, message):
+    with open("error_log.txt", "a", encoding="utf-8") as file:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        file.write(f"[{timestamp}] ERROR in {function_name}: {error_type} — {message}\n")
+
+
+##Trigger Connection Error
+
+try:
+    response = requests.get("https://this-host-does-not-exist-xyz.com/api", timeout=5)
+except requests.exceptions.ConnectionError:
+    log_error("fetch_products", "ConnectionError", "No connection could be made")
+    print("Connection error logged.")
+
+
+## Trigger HTTP Error (404) 
+
+url = "https://dummyjson.com/products/999"
+
+try:
+    response = requests.get(url, timeout=5)
+
+    if response.status_code != 200:
+        log_error("lookup_product", "HTTPError", f"{response.status_code} Not Found for product ID 999")
+        print("HTTP error logged.")
+
+except Exception as e:
+    log_error("lookup_product", "Exception", str(e))
+
+
+## Read and Print Log File
+
+print("\nError Log Contents:\n")
+
+with open("error_log.txt", "r", encoding="utf-8") as file:
+    print(file.read())
+
