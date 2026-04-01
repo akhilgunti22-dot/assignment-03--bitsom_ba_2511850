@@ -1,0 +1,109 @@
+####Task 3 — Exception Handling Code
+
+# handling division errors
+# safely reading file with exception handling
+# handling API connection issues
+# validating user input before API call
+
+
+### Part A: Guarded Calculator
+
+
+def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return "Error: Cannot divide by zero"
+    except TypeError:
+        return "Error: Invalid input types"
+
+# Test cases
+print(safe_divide(10, 2))
+print(safe_divide(10, 0))
+print(safe_divide("ten", 2))
+
+
+
+### Part B: Guarded File Reader
+
+
+def read_file_safe(filename):
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+    finally:
+        print("File operation attempt complete.")
+
+# Test
+print(read_file_safe("python_notes.txt"))
+print(read_file_safe("ghost_file.txt"))
+
+
+### Part C — Robust API Calls
+
+import requests
+
+# Safe GET request
+def safe_get(url):
+    try:
+        response = requests.get(url, timeout=5)
+        return response
+    except requests.exceptions.ConnectionError:
+        print("Connection failed. Please check your internet.")
+    except requests.exceptions.Timeout:
+        print("Request timed out. Try again later.")
+    except Exception as e:
+        print("Error:", e)
+
+# Safe POST request
+def safe_post(url, data):
+    try:
+        response = requests.post(url, json=data, timeout=5)
+        return response
+    except requests.exceptions.ConnectionError:
+        print("Connection failed. Please check your internet.")
+    except requests.exceptions.Timeout:
+        print("Request timed out. Try again later.")
+    except Exception as e:
+        print("Error:", e)
+
+response = safe_get("https://dummyjson.com/products?limit=20")
+if response:
+    data = response.json()
+    print("API call successful")
+
+
+
+### Part D: Input Validation Loop
+
+
+while True:
+    user_input = input("\nEnter product ID (1–100) or 'quit': ")
+
+    if user_input.lower() == "quit":
+        print("Exiting...")
+        break
+
+    # Validate integer
+    if not user_input.isdigit():
+        print("Invalid input! Enter a number.")
+        continue
+
+    product_id = int(user_input)
+
+    if product_id < 1 or product_id > 100:
+        print("Please enter a number between 1 and 100.")
+        continue
+
+    # API call
+    url = f"https://dummyjson.com/products/{product_id}"
+    response = safe_get(url)
+
+    if response:
+        if response.status_code == 404:
+            print("Product not found.")
+        elif response.status_code == 200:
+            product = response.json()
+            print(f"{product['title']} - ${product['price']}")
